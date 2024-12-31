@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres
+    container_name: db
+    environment:  # Correct key for environment variables
+      POSTGRES_DB: social
+      POSTGRES_USER: satyam
+      POSTGRES_PASSWORD: Shadowcyng@123
+    volumes:
+      - db-data:/var/lib/postgresql/data  # Correct volume path
+      - ./scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+
+volumes:
+  db-data:
