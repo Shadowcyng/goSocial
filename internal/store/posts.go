@@ -25,7 +25,7 @@ type Post struct {
 type PostWithMetadata struct {
 	Post           Post     `json:"post"`
 	CommentCount   int      `json:"comment_count"`
-	LatestComments []string `json:latest_comments`
+	LatestComments []string `json:"latest_comments"`
 }
 type PostStore struct {
 	db *sql.DB
@@ -146,7 +146,7 @@ func (s *PostStore) GetUserFeed(ctx context.Context, id int64, fq PaginatedFeedQ
 	WHERE 
 		(f.user_id = $1 OR p.user_id = $1 ) AND
 		(p.title ILIKE '%%' || $4 || '%%' OR p.content ILIKE '%%' || $4 || '%%') AND
-		(p.tags @> $5 OR $5 IS NULL OR $5 = '{}'::TEXT[])
+		(p.tags @> $5 OR $5 IS NULL OR $5 = '{}'::VARCHAR[])
 	GROUP BY p.id, u.username
 	ORDER BY %s %s
 	LIMIT $2 OFFSET $3;

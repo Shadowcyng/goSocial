@@ -23,9 +23,9 @@ func (fq PaginatedFeedQuery) Parse(r *http.Request) PaginatedFeedQuery {
 	limit := qs.Get("limit")
 	tags := qs.Get("tags")
 	offset := qs.Get("offset")
-	fq.SortBy = qs.Get("sort_by")
-	fq.SortOrder = qs.Get("sort_order")
-	fq.Search = qs.Get("search")
+	sortBy := qs.Get("sort_by")
+	sortOrder := qs.Get("sort_order")
+	search := qs.Get("search")
 	since := qs.Get("since")
 	until := qs.Get("until")
 
@@ -42,6 +42,15 @@ func (fq PaginatedFeedQuery) Parse(r *http.Request) PaginatedFeedQuery {
 			return fq
 		}
 		fq.Offset = o
+	}
+	if sortOrder != "" {
+		fq.SortOrder = sortOrder
+	}
+	if sortBy != "" {
+		fq.SortBy = sortBy
+	}
+	if search != "" {
+		fq.Search = search
 	}
 	if tags != "" {
 		fq.Tags = strings.Split(tags, ",")

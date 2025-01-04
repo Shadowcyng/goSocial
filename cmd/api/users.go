@@ -19,6 +19,20 @@ type AuthUser struct {
 	UserID int64 `json:"user_id" validate:"required"`
 }
 
+// GetUser godoc
+//
+//	@Summary		Fetches a user profile
+//	@Description	Feches a user profile by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"User ID"
+//	@Success		200	{object}	store.User
+//	@Failure		400	{object}	error	"Bad request"
+//	@Failure		404	{object}	error	"User not found"
+//	@Failure		500	{object}	error	"Something went wrong"
+//	@security		ApiKeyAuth
+//	@Router			/users/{id}	[get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 	if err := jsonResponse(w, http.StatusCreated, user); err != nil {
@@ -26,6 +40,21 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// FollowUser godoc
+//
+//	@Summary		Follow a user profile
+//	@Description	Follow a user profile by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int		true	"User ID"
+//	@Success		204	{string}	string	"User followed"
+//	@Failure		400	{object}	error	"Bad request"
+//	@Failure		409	{object}	error	"Conflict: user already in followings"
+//	@Failure		404	{object}	error	"User not found"
+//	@Failure		500	{object}	error	"Somehting went wrong"
+//	@security		ApiKeyAuth
+//	@Router			/users/{id}/follow	[put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromContext(r)
 
@@ -56,8 +85,22 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 		app.internalServerError(w, r, err)
 		return
 	}
-
 }
+
+// UnfollowUser godoc
+//
+//	@Summary		Unfollow a user profile
+//	@Description	Unfollow a user profile by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int		true	"User ID"
+//	@Success		204	{string}	string	"User unfollowed"
+//	@Failure		400	{object}	error	"Bad request"
+//	@Failure		404	{object}	error	"User not found"
+//	@Failure		500	{object}	error	"Somehting went wrong"
+//	@security		ApiKeyAuth
+//	@Router			/users/{id}/unfollow	[put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unfollowedUser := getUserFromContext(r)
 
