@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/Shadowcyng/goSocial/internal/db"
 	"github.com/Shadowcyng/goSocial/internal/env"
 	"github.com/Shadowcyng/goSocial/internal/store"
+	"go.uber.org/zap"
 )
 
 const Version = "0.0.1"
@@ -30,6 +28,8 @@ const Version = "0.0.1"
 //	@description
 
 func main() {
+
+	// Config
 	cfg := config{
 		addr:    env.GetString("ADDR", ":8080"),
 		env:     env.GetString("ENV", "dev"),
@@ -42,20 +42,30 @@ func main() {
 			maxIdleTimes: env.GetString("DB_MAX_IDLE_TIMES", "15m"),
 		},
 	}
+	// Logger
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync()
 
-	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTimes)
+	// Database
+	db, err := db.New(
+		cfg.db.addr,
+		cfg.db.maxOpenConns,
+		cfg.db.maxIdleConns,
+		cfg.db.maxIdleTimes,
+	)
 	if err != nil {
-		log.Panic(err)
+		logger.Fatal(err)
 	}
 	defer db.Close()
-	fmt.Println("database connection pool established")
+	logger.Info("database connection pool established")
 	store := store.NewStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  store,
+		logger: *logger,
 	}
 
 	mux := app.mount()
-	log.Fatal(app.run(mux))
+	logger.Fatal(app.run(mux))
 }
