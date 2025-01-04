@@ -16,6 +16,23 @@ definitions:
     - content
     - title
     type: object
+  main.RegisterUserPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   main.UpdatePostPayload:
     properties:
       content:
@@ -107,33 +124,63 @@ info:
   title: GoSocial API
   version: "1.0"
 paths:
+  /authentication/user:
+    post:
+      consumes:
+      - application/json
+      description: register user using email, username and password
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User Registered
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad request
+          schema: {}
+        "500":
+          description: Somehting went wrong
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: user registeration
+      tags:
+      - authentication
   /feed:
     get:
       consumes:
       - application/json
       description: get user feed by its followers or own
       parameters:
-      - description: Feed limit
+      - description: 'Feed limit  | default: 20'
         in: query
         name: limit
         type: integer
-      - description: Feed offset
+      - description: 'Feed offset | default: 0'
         in: query
         name: offset
         type: integer
-      - description: Feed sort_by
+      - description: 'Feed sort_by | default : created_at'
         in: query
         name: sort_by
         type: string
-      - description: Feed sort_order(asc/desc)
+      - description: Feed sort_order(asc/desc) | default | desc
         in: query
         name: sort_order
         type: string
-      - description: Feed tag comma seprated string max=5
+      - description: 'Feed tag comma seprated string | max: 5 '
         in: query
         name: tags
         type: string
-      - description: Feed search by title/content
+      - description: 'Feed search by title/content  '
         in: query
         name: search
         type: string

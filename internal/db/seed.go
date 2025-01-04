@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"math/rand"
@@ -9,18 +10,21 @@ import (
 	"github.com/Shadowcyng/goSocial/internal/store"
 )
 
-func Seed(store store.Storage) error {
+func Seed(store store.Storage, db *sql.DB) error {
 	ctx := context.Background()
 	users := generateUser(1000)
+	tx, _ := db.BeginTx(ctx, nil)
 	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
+		if err := store.Users.Create(ctx, tx, user); err != nil {
 			log.Println("Error creating user", err)
 			return err
 		}
 	}
+	tx.Commit()
 	posts := generatePost(100000, users)
 	for _, post := range posts {
 		if err := store.Posts.Create(ctx, post); err != nil {
+			_ = tx.Rollback()
 			log.Println("Error creating post", err)
 			return err
 		}
@@ -38,12 +42,13 @@ func Seed(store store.Storage) error {
 }
 
 func generateUser(num int) []*store.User {
+	password := store.Password{}
 	users := make([]*store.User, num)
 	for i := 0; i < num; i++ {
 		users[i] = &store.User{
 			Username: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@example.com",
-			Password: "123123",
+			Password: password,
 		}
 	}
 	return users

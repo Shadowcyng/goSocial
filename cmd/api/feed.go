@@ -11,12 +11,12 @@ import (
 // @Tags			feed
 // @Accept			json
 // @Produce		json
-// @Param			limit		query		int		false	"Feed limit"
-// @Param			offset		query		int		false	"Feed offset"
-// @Param			sort_by		query		string	false	"Feed sort_by"
-// @Param			sort_order	query		string	false	"Feed sort_order(asc/desc)"
-// @Param			tags		query		string	false	"Feed tag comma seprated string max=5"
-// @Param			search		query		string	false	"Feed search by title/content"
+// @Param			limit		query		int		false	"Feed limit  | default: 20"
+// @Param			offset		query		int		false	"Feed offset | default: 0"
+// @Param			sort_by		query		string	false	"Feed sort_by | default : created_at"
+// @Param			sort_order	query		string	false	"Feed sort_order(asc/desc) | default | desc"
+// @Param			tags		query		string	false	"Feed tag comma seprated string | max: 5 "
+// @Param			search		query		string	false	"Feed search by title/content  "
 // @Success		200			{object}	[]store.PostWithMetadata
 // @Failure		400			{object}	error	"Bad request"
 // @Failure		500			{object}	error	"Somehting went wrong"

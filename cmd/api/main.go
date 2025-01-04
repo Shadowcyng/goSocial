@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/Shadowcyng/goSocial/internal/db"
 	"github.com/Shadowcyng/goSocial/internal/env"
 	"github.com/Shadowcyng/goSocial/internal/store"
@@ -40,6 +42,9 @@ func main() {
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 			maxIdleTimes: env.GetString("DB_MAX_IDLE_TIMES", "15m"),
+		},
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3, // 3days
 		},
 	}
 	// Logger

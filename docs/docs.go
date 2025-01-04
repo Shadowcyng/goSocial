@@ -24,6 +24,53 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/authentication/user": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "register user using email, username and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "user registeration",
+                "parameters": [
+                    {
+                        "description": "User credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.RegisterUserPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User Registered",
+                        "schema": {
+                            "$ref": "#/definitions/store.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Somehting went wrong",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/feed": {
             "get": {
                 "security": [
@@ -45,37 +92,37 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Feed limit",
+                        "description": "Feed limit  | default: 20",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "Feed offset",
+                        "description": "Feed offset | default: 0",
                         "name": "offset",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Feed sort_by",
+                        "description": "Feed sort_by | default : created_at",
                         "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Feed sort_order(asc/desc)",
+                        "description": "Feed sort_order(asc/desc) | default | desc",
                         "name": "sort_order",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Feed tag comma seprated string max=5",
+                        "description": "Feed tag comma seprated string | max: 5 ",
                         "name": "tags",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Feed search by title/content",
+                        "description": "Feed search by title/content  ",
                         "name": "search",
                         "in": "query"
                     }
@@ -525,6 +572,29 @@ const docTemplate = `{
                     }
                 },
                 "title": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "main.RegisterUserPayload": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
+                },
+                "username": {
                     "type": "string",
                     "maxLength": 100
                 }

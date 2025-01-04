@@ -20,6 +20,6 @@ func main() {
 	defer conn.Close()
 	fmt.Println("database connection pool established")
 	store := store.NewStorage(conn)
-	db.Seed(store)
+	db.Seed(store, conn)
 
 }
