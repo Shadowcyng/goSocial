@@ -25,9 +25,12 @@ type Storage struct {
 	}
 	Users interface {
 		Create(context.Context, *sql.Tx, *User) error
+		Delete(context.Context, int64) error
 		GetById(context.Context, int64) (*User, error)
+		GetByEmail(context.Context, string) (*User, error)
+		GetByUsername(context.Context, string) (*User, error)
 		CreateAndInvite(context.Context, *User, string, time.Duration) error
-		createUserInviations(context.Context, *sql.Tx, time.Duration, string, int64) error
+		Activate(context.Context, string) error
 	}
 	Comments interface {
 		GetByPostID(context.Context, int64) ([]Comment, error)
@@ -37,6 +40,9 @@ type Storage struct {
 		Follow(context.Context, int64, int64) error
 		Unfollow(context.Context, int64, int64) error
 	}
+	Role interface {
+		GetByName(ctx context.Context, roleName string) (*Role, error)
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
@@ -45,10 +51,11 @@ func NewStorage(db *sql.DB) Storage {
 		Users:     &UserStore{db: db},
 		Comments:  &CommentStore{db: db},
 		Followers: &FollowerStore{db: db},
+		Role:      &RoleStore{db: db},
 	}
 }
 
-func withTX(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
+func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

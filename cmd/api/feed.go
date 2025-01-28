@@ -23,7 +23,6 @@ import (
 // @security		ApiKeyAuth
 // @Router			/feed	[get]
 func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: paginaton, filters, sort
 	fq := store.PaginatedFeedQuery{
 		Limit:     20,
 		Offset:    0,

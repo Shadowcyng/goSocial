@@ -23,3 +23,23 @@ func (app *application) conflictError(w http.ResponseWriter, r *http.Request, er
 	app.logger.Errorw("conflict error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 	writeJSONError(w, http.StatusConflict, "resource already exists")
 }
+
+func (app *application) unauthorizedBasicError(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Errorw("unauthorized basic error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", chartset="UTF-8`)
+	writeJSONError(w, http.StatusUnauthorized, "unauthorized")
+}
+func (app *application) unauthorizedError(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Errorw("unauthorized error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	writeJSONError(w, http.StatusUnauthorized, "unauthorized")
+}
+
+func (app *application) invalidCredentials(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Errorw("invalid credentials", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	writeJSONError(w, http.StatusBadRequest, "invalid credentials")
+}
+
+func (app *application) forbiddenError(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Errorw("forbidden", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	writeJSONError(w, http.StatusForbidden, "forbidden")
+}

@@ -32,7 +32,6 @@ type CreatePostPayload struct {
 // @security		ApiKeyAuth
 // @Router			/posts	[post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
-	userId := 1
 	var payload CreatePostPayload
 	var post store.Post
 	if err := readJSON(w, r, &payload); err != nil {
@@ -43,11 +42,15 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		app.badRequestResponse(w, r, err)
 		return
 	}
-	post.Title = payload.Title
-	post.Content = payload.Content
-	post.Tags = payload.Tags
-	// TODO change after auth
-	post.UserID = int64(userId)
+
+	authUser := getAuthUserFromContext(r)
+	post = store.Post{
+		Title:   payload.Title,
+		Content: payload.Content,
+		Tags:    payload.Tags,
+		UserID:  authUser.ID,
+	}
+
 	err := app.store.Posts.Create(r.Context(), &post)
 	if err != nil {
 		app.internalServerError(w, r, err)
@@ -98,13 +101,9 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 // @security		ApiKeyAuth
 // @Router			/posts/{id}	[delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
-	idParam := chi.URLParam(r, "post_id")
-	postId, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-	err = app.store.Posts.DeleteById(r.Context(), postId)
+	post := getPostFromContext(r)
+
+	err := app.store.Posts.DeleteById(r.Context(), post.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrorNotFound):
@@ -130,8 +129,6 @@ type UpdatePostPayload struct {
 // @Produce		json
 // @Param			id		path		int					true	"Post id"
 // @Param			payload	body		UpdatePostPayload	false	"Post title"
-// @Param			content	body		string				false	"Post content"
-// @Param			tags	body		[]string			false	"Post tags"
 // @Success		200		{object}	store.Post
 // @Failure		400		{object}	error	"Bad request"
 // @Failure		404		{object}	error	"Post not found"
@@ -158,9 +155,8 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	if payload.Tags != nil {
 		post.Tags = payload.Tags
 	}
-
-	err := app.store.Posts.UpdatePostById(r.Context(), post)
-	if err != nil {
+	ctx := r.Context()
+	if err := app.updatePost(ctx, post); err != nil {
 		switch {
 		case errors.Is(err, store.ErrorNotFound):
 			app.notFoundResponse(w, r, err)
@@ -170,9 +166,10 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 			return
 		}
 	}
-	err = jsonResponse(w, http.StatusOK, post)
+	err := jsonResponse(w, http.StatusOK, post)
 	if err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 }
@@ -190,10 +187,11 @@ func (app *application) postContextMiddleware(next http.Handler) http.Handler {
 			switch {
 			case errors.Is(err, store.ErrorNotFound):
 				app.notFoundResponse(w, r, err)
+				return
 			default:
 				app.internalServerError(w, r, err)
+				return
 			}
-			return
 		}
 		ctx := context.WithValue(r.Context(), postCtx, post)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -203,4 +201,12 @@ func (app *application) postContextMiddleware(next http.Handler) http.Handler {
 func getPostFromContext(r *http.Request) *store.Post {
 	post, _ := r.Context().Value(postCtx).(*store.Post)
 	return post
+}
+
+func (app *application) updatePost(ctx context.Context, post *store.Post) error {
+	if err := app.store.Posts.UpdatePostById(ctx, post); err != nil {
+		return err
+	}
+	app.cacheStorage.Users.Delete(ctx, post.ID)
+	return nil
 }

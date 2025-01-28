@@ -152,7 +152,6 @@ func (s *PostStore) GetUserFeed(ctx context.Context, id int64, fq PaginatedFeedQ
 	LIMIT $2 OFFSET $3;
 	`, fq.SortBy, fq.SortOrder)
 
-	fmt.Println(query)
 	ctx, cancelCtx := context.WithTimeout(ctx, QueryTimeout)
 	defer cancelCtx()
 	rows, err := s.db.QueryContext(ctx, query, id, fq.Limit, fq.Offset, fq.Search, pq.Array(fq.Tags))

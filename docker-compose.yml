@@ -1,6 +1,28 @@
 version: '3.8'
 
+
 services:
+  cache:
+    image: redis:6.2-alpine
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command:  ["--requirepass", "satyam123"]
+    volumes:
+      - cache:/data
+
+  redis-commander:
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    container_name: redis-commander
+    environment:
+      - REDIS_HOSTS=redis
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+      - cache
   db:
     image: postgres
     container_name: db
@@ -16,3 +38,4 @@ services:
 
 volumes:
   db-data:
+  cache:

@@ -16,6 +16,22 @@ definitions:
     - content
     - title
     type: object
+  main.CreateUserTokenPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - password
+    type: object
   main.RegisterUserPayload:
     properties:
       email:
@@ -45,6 +61,25 @@ definitions:
         type: array
       title:
         maxLength: 100
+        type: string
+    type: object
+  main.UserWithToken:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      role:
+        $ref: '#/definitions/store.Role'
+      role_id:
+        type: integer
+      token:
+        type: string
+      username:
         type: string
     type: object
   store.Comment:
@@ -100,6 +135,17 @@ definitions:
       post:
         $ref: '#/definitions/store.Post'
     type: object
+  store.Role:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      name:
+        type: string
+    type: object
   store.User:
     properties:
       created_at:
@@ -107,6 +153,12 @@ definitions:
       email:
         type: string
       id:
+        type: integer
+      is_active:
+        type: boolean
+      role:
+        $ref: '#/definitions/store.Role'
+      role_id:
         type: integer
       username:
         type: string
@@ -124,6 +176,36 @@ info:
   title: GoSocial API
   version: "1.0"
 paths:
+  /authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: Creates a token for user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema: {}
+        "500":
+          description: Somehting went wrong
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Creates a token
+      tags:
+      - authentication
   /authentication/user:
     post:
       consumes:
@@ -139,10 +221,10 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: User Registered
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/store.User'
+            $ref: '#/definitions/main.UserWithToken'
         "400":
           description: Bad request
           schema: {}
@@ -335,18 +417,6 @@ paths:
         name: payload
         schema:
           $ref: '#/definitions/main.UpdatePostPayload'
-      - description: Post content
-        in: body
-        name: content
-        schema:
-          type: string
-      - description: Post tags
-        in: body
-        name: tags
-        schema:
-          items:
-            type: string
-          type: array
       produces:
       - application/json
       responses:
@@ -465,6 +535,36 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Unfollow a user profile
+      tags:
+      - users
+  /users/activate/{token}:
+    put:
+      description: Activates/Register a user by invitation token
+      parameters:
+      - description: Invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User activated
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema: {}
+        "404":
+          description: User not found
+          schema: {}
+        "500":
+          description: Somehting went wrong
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: activate user
       tags:
       - users
 securityDefinitions:
