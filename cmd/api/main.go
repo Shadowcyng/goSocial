@@ -1,7 +1,9 @@
 package main
 
 import (
+	"expvar"
 	"log"
+	"runtime"
 	"time"
 
 	"github.com/Shadowcyng/goSocial/internal/auth"
@@ -74,8 +76,8 @@ func main() {
 		},
 		rateLimiter: ratelimiter.Config{
 			RequestPerTimeFrame: env.GetInt("RATE_LIMITER_REQUEST_COUNT", 20),
-			TimeFrame: time.Second*5,
-			Enabled: env.GetBool("RATE_LIMITER_ENABLE", true),
+			TimeFrame:           time.Second * 5,
+			Enabled:             env.GetBool("RATE_LIMITER_ENABLE", true),
 		},
 	}
 	// Logger
@@ -113,7 +115,7 @@ func main() {
 	}
 
 	// rate limiter
-	rateLimiter := ratelimiter.NewFixedWindowLimiter(cfg.rateLimiter.RequestPerTimeFramem , cfg.rateLimiter.TimeFrame)
+	rateLimiter := ratelimiter.NewFixedWindowLimiter(cfg.rateLimiter.RequestPerTimeFrame, cfg.rateLimiter.TimeFrame)
 
 	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.issuer, cfg.auth.token.issuer)
 	app := &application{
@@ -123,8 +125,18 @@ func main() {
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,
 		cacheStorage:  cacheSotrage,
-		ratelimiter
+		rateLimiter:   rateLimiter,
 	}
+
+	// Metrics collected
+	expvar.NewString("version").Set(cfg.version)
+	expvar.Publish("datababse", expvar.Func(func() any {
+		return db.Stats()
+	}))
+
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
 
 	mux := app.mount()
 	logger.Fatal(app.run(mux))
