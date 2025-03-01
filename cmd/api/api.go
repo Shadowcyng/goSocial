@@ -179,7 +179,7 @@ func (app *application) run(mux http.Handler) error {
 
 	shutdown := make(chan error)
 	go func() {
-		quit := make(chan os.Signal)
+		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		s := <-quit
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
