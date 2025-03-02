@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Shadowcyng/goSocial/compare/v1.1.0...v1.2.0) (2025-03-02)
+
+
+### Features
+
+* change for version ([a4d5b9d](https://github.com/Shadowcyng/goSocial/commit/a4d5b9ddab1c6b93b191402e1259c3f7aba2717a))
+
 ## [1.1.0](https://github.com/Shadowcyng/goSocial/compare/v1.0.0...v1.1.0) (2025-03-02)
 
 
